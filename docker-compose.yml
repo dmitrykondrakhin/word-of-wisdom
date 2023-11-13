@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: local_deploy/Dockerfile.server
+    container_name: server
+    restart: always
+    environment:
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - HASHCASH_BITS=${HASHCASH_BITS}
+
+  client:
+    build:
+      context: .
+      dockerfile: local_deploy/Dockerfile.client
+    container_name: client
+    environment:
+      - CLIENT_HOST=${CLIENT_HOST}
+      - CLIENT_PORT=${CLIENT_PORT}
+      - REPEATED_COUNT=${REPEATED_COUNT}
+      - HASHCASH_BITS=${HASHCASH_BITS}
+    depends_on:
+      - server
+    links:
+      - server

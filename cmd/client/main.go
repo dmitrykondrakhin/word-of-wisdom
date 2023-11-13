@@ -28,7 +28,7 @@ func main() {
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
 	logger := slog.New(jsonHandler)
 
-	client := client.NewClient(cfg.ServerHost, cfg.ServerPort, cfg.RepeatedCount, cfg.HashCashBits, logger)
+	client := client.NewClient(cfg.ClientHost, cfg.ClientPort, cfg.RepeatedCount, cfg.HashCashBits, logger)
 
 	err = client.Run(ctx)
 	if err != nil {

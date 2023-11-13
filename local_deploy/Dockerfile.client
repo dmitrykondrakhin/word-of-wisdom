@@ -1,0 +1,10 @@
+# Build
+FROM golang:alpine as builder
+WORKDIR /client
+COPY . ./
+RUN GOOS=linux GOARCH=amd64 go build -o client ./cmd/client/main.go
+
+# Run
+FROM alpine:latest
+COPY --from=builder /client /client
+CMD client/client
