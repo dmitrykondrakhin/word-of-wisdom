@@ -10,7 +10,9 @@ import (
 
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/config"
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/errors"
+	"github.com/dmitrykondrakhin/word-of-wisdom/internal/repository"
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/server"
+	"github.com/dmitrykondrakhin/word-of-wisdom/internal/usecase"
 )
 
 func main() {
@@ -28,7 +30,10 @@ func main() {
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
 	logger := slog.New(jsonHandler)
 
-	server := server.NewServer(cfg.ServerHost, cfg.ServerPort, cfg.HashCashBits, logger)
+	repos := repository.CreateRepositories()
+	usecasases := usecase.CreateUsecases(repos)
+
+	server := server.NewServer(cfg.ServerHost, cfg.ServerPort, cfg.HashCashBits, logger, &usecasases)
 
 	err = server.Start(ctx)
 	if err != nil {

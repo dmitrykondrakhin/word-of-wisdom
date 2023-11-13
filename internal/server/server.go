@@ -8,25 +8,32 @@ import (
 	"net"
 
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/hashcash"
+	"github.com/dmitrykondrakhin/word-of-wisdom/internal/usecase"
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/utils"
 )
+
+type WordOfWisdomUseCase interface {
+	GetQuote(ctx context.Context) (string, error)
+}
 
 type server struct {
 	host         string
 	port         string
 	hashCashBits uint
 	logger       *slog.Logger
+	usecase      WordOfWisdomUseCase
 }
 
 const protocol = "tcp"
 const randomStringLength = 8
 
-func NewServer(host string, port string, hashCashBits uint, logger *slog.Logger) *server {
+func NewServer(host string, port string, hashCashBits uint, logger *slog.Logger, usecases *usecase.Usecases) *server {
 	return &server{
 		host:         host,
 		port:         port,
 		hashCashBits: hashCashBits,
 		logger:       logger,
+		usecase:      *usecases.WordOfWidsomUseCase,
 	}
 }
 
@@ -48,14 +55,14 @@ func (s *server) Start(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		err = s.handleRequest(conn)
+		err = s.handleRequest(ctx, conn)
 		if err != nil {
 			s.logger.Error(err.Error())
 		}
 	}
 }
 
-func (s *server) handleRequest(conn net.Conn) error {
+func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
 	_, err := utils.Read(conn)
 	if err != nil {
 		return fmt.Errorf("read message err: %w", err)
@@ -78,7 +85,13 @@ func (s *server) handleRequest(conn net.Conn) error {
 		return fmt.Errorf("check solution error: %w", err)
 	}
 
-	if err = utils.Write(conn, []byte("yohooo")); err != nil {
+	answer, err := s.usecase.GetQuote(ctx)
+	if err != nil {
+		return fmt.Errorf("get quote err: %w", err)
+	}
+
+	err = utils.Write(conn, []byte(answer))
+	if err != nil {
 		return fmt.Errorf("send answer err: %w", err)
 	}
 
