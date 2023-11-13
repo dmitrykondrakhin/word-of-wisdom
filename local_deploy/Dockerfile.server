@@ -1,0 +1,11 @@
+# Build
+FROM golang:alpine as builder
+WORKDIR /server
+COPY . ./
+RUN ls
+RUN GOOS=linux GOARCH=amd64 go build -o server ./cmd/server/main.go
+
+# Run
+FROM alpine:latest
+COPY --from=builder /server /server
+CMD server/server
