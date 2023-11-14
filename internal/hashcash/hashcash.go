@@ -19,25 +19,31 @@ const (
 var hasher = sha1.New()
 
 type Hash struct {
-	bits uint
+	bits         uint
+	date         string
+	randomString string
 }
 
 func New(bits uint) *Hash {
 	return &Hash{
 		bits: bits,
+		date: time.Now().Format(dateFormat),
+		randomString: func() string {
+			randomString, err := getRandomString()
+			if err != nil {
+				return ""
+			}
+
+			return randomString
+		}(),
 	}
 }
 
-func (h *Hash) GetHeader(resource string) (string, error) {
-	randomString, err := h.getRandomString()
-	if err != nil {
-		return "", err
-	}
-	date := time.Now().Format(dateFormat)
+func (h *Hash) GetHeader(token string) (string, error) {
 	counter := 0
 	var header string
 	for {
-		header = fmt.Sprintf("1:%d:%s:%s::%s:%x", h.bits, date, resource, randomString, counter)
+		header = fmt.Sprintf("1:%d:%s:%s::%s:%x", h.bits, h.date, token, h.randomString, counter)
 		if h.checkZeros(header) {
 			return header, nil
 		}
@@ -49,16 +55,19 @@ func (h *Hash) Check(header string) bool {
 	if h.checkDate(header) {
 		return h.checkZeros(header)
 	}
+
 	return false
 }
 
-func (h *Hash) getRandomString() (string, error) {
+func getRandomString() (string, error) {
 	buf := make([]byte, randomStringLen)
 	_, err := rand.Read(buf)
 	if err != nil {
 		return "", err
 	}
+
 	randomString := base64.StdEncoding.EncodeToString(buf)
+
 	return randomString[:randomStringLen], nil
 }
 

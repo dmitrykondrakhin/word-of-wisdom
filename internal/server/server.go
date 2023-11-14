@@ -55,6 +55,7 @@ func (s *server) Start(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+
 		err = s.handleRequest(ctx, conn)
 		if err != nil {
 			s.logger.Error(err.Error())
@@ -63,6 +64,7 @@ func (s *server) Start(ctx context.Context) error {
 }
 
 func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
+	defer conn.Close()
 	_, err := utils.Read(conn)
 	if err != nil {
 		return fmt.Errorf("read message err: %w", err)
@@ -73,16 +75,16 @@ func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
 	if err != nil {
 		return fmt.Errorf("send token err: %w", err)
 	}
-	s.logger.Info("send token " + string(token))
+	s.logger.Info("send token", "token", string(token))
 
 	solution, err := utils.Read(conn)
 	if err != nil {
 		return fmt.Errorf("receive solution err: %w", err)
 	}
-	s.logger.Info("get hashcash header " + string(solution))
+	s.logger.Info("get hashcash header", "header", string(solution))
 
 	if !hashcash.New(s.hashCashBits).Check(string(solution)) {
-		return fmt.Errorf("check solution error: %w", err)
+		return fmt.Errorf("wrong solution")
 	}
 
 	answer, err := s.usecase.GetQuote(ctx)
@@ -94,8 +96,6 @@ func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
 	if err != nil {
 		return fmt.Errorf("send answer err: %w", err)
 	}
-
-	conn.Close()
 
 	return nil
 }
