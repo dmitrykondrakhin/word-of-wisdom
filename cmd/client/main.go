@@ -5,8 +5,6 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/client"
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/config"
@@ -14,11 +12,7 @@ import (
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
-	go func() {
-		<-ctx.Done()
-		cancel()
-	}()
+	ctx := context.Background()
 
 	cfg, err := config.Init()
 	if err != nil {
@@ -27,7 +21,6 @@ func main() {
 
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
 	logger := slog.New(jsonHandler)
-
 	client := client.NewClient(cfg.ClientHost, cfg.ClientPort, cfg.RepeatedCount, cfg.HashCashBits, logger)
 
 	err = client.Run(ctx)

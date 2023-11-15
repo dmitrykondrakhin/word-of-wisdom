@@ -29,10 +29,8 @@ func main() {
 
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
 	logger := slog.New(jsonHandler)
-
 	repos := repository.CreateRepositories()
 	usecasases := usecase.CreateUsecases(repos)
-
 	server := server.NewServer(cfg.ServerHost, cfg.ServerPort, cfg.HashCashBits, logger, &usecasases)
 
 	err = server.Start(ctx)

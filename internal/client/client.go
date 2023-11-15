@@ -66,14 +66,16 @@ func (c *client) GetAnswerFromTCPServer(ctx context.Context) ([]byte, error) {
 
 	token, err := utils.Read(conn)
 	if err != nil {
-		return nil, fmt.Errorf("receive err: %w", err)
+		return nil, fmt.Errorf("receive token err: %w", err)
 	}
 
 	solution, err := hashcash.New(c.hashCashBits).GetHeader(string(token))
 	if err != nil {
 		return nil, fmt.Errorf("calculate hashcash err: %w", err)
 	}
-	if err := utils.Write(conn, []byte(solution)); err != nil {
+
+	err = utils.Write(conn, []byte(solution))
+	if err != nil {
 		return nil, fmt.Errorf("send solution err: %w", err)
 	}
 
