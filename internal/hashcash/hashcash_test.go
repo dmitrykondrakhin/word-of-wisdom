@@ -31,6 +31,6 @@ func TestHashCash(t *testing.T) {
 
 		assert.Nil(t, err, fmt.Sprintf("test case %d", i))
 		assert.Equal(t, testCase.result, result, fmt.Sprintf("test case %d", i))
-		assert.Equal(t, testCase.checkResult, hashcash.Check(result), fmt.Sprintf("test case %d", i))
+		assert.Equal(t, testCase.checkResult, hashcash.Check(result, testCase.token), fmt.Sprintf("test case %d", i))
 	}
 }

@@ -51,9 +51,12 @@ func (h *Hash) GetHeader(token string) (string, error) {
 	}
 }
 
-func (h *Hash) Check(header string) bool {
-	if h.checkDate(header) {
-		return h.checkZeros(header)
+func (h *Hash) Check(header string, token string) bool {
+	tokenFromHeader := strings.Split(header, ":")[3]
+	if tokenFromHeader == token {
+		if h.checkDate(header) {
+			return h.checkZeros(header)
+		}
 	}
 
 	return false
