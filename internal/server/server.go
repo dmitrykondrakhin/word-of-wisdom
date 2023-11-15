@@ -97,7 +97,7 @@ func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
 
 	s.logger.Info("get hashcash header", "header", string(solution))
 
-	if !hashcash.New(s.hashCashBits).Check(string(solution)) {
+	if !hashcash.New(s.hashCashBits).Check(string(solution), string(token)) {
 		return fmt.Errorf("wrong solution")
 	}
 
