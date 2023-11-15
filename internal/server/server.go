@@ -49,6 +49,12 @@ func (s *server) Start(ctx context.Context) error {
 		}
 	}()
 
+	go func() {
+		<-ctx.Done()
+		listen.Close()
+		s.logger.Info("server was stopped")
+	}()
+
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
