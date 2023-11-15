@@ -11,16 +11,21 @@ type Config struct {
 	HashCashBits  uint   `mapstructure:"HASHCASH_BITS"`
 }
 
-func Init() (config Config, err error) {
+func Init() (Config, error) {
 	viper.SetDefault("SERVER_HOST", "127.0.0.1")
 	viper.SetDefault("SERVER_PORT", "8080")
 	viper.SetDefault("CLIENT_HOST", "127.0.0.1")
 	viper.SetDefault("CLIENT_PORT", "8080")
 	viper.SetDefault("REPEATED_COUNT", "60")
 	viper.SetDefault("HASHCASH_BITS", "20")
-
 	viper.AutomaticEnv()
 
-	err = viper.Unmarshal(&config)
-	return
+	var config Config
+
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return config, nil
 }

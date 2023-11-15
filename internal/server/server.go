@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"math/rand"
 	"net"
 
 	"github.com/dmitrykondrakhin/word-of-wisdom/internal/hashcash"
@@ -46,7 +45,7 @@ func (s *server) Start(ctx context.Context) error {
 	defer func() {
 		err := listen.Close()
 		if err != nil {
-			s.logger.Error(fmt.Sprintf("close connection error. %s", err.Error()))
+			s.logger.Error(fmt.Sprintf("close listen error. %s", err.Error()))
 		}
 	}()
 
@@ -64,23 +63,32 @@ func (s *server) Start(ctx context.Context) error {
 }
 
 func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
-	defer conn.Close()
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			s.logger.Error(fmt.Sprintf("close connection error. %s", err.Error()))
+		}
+	}()
+
 	_, err := utils.Read(conn)
 	if err != nil {
 		return fmt.Errorf("read message err: %w", err)
 	}
 
-	token := RandStringBytes(randomStringLength)
+	token := utils.RandStringBytes(randomStringLength)
+
 	err = utils.Write(conn, token)
 	if err != nil {
 		return fmt.Errorf("send token err: %w", err)
 	}
+
 	s.logger.Info("send token", "token", string(token))
 
 	solution, err := utils.Read(conn)
 	if err != nil {
 		return fmt.Errorf("receive solution err: %w", err)
 	}
+
 	s.logger.Info("get hashcash header", "header", string(solution))
 
 	if !hashcash.New(s.hashCashBits).Check(string(solution)) {
@@ -98,15 +106,4 @@ func (s *server) handleRequest(ctx context.Context, conn net.Conn) error {
 	}
 
 	return nil
-}
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func RandStringBytes(n int) []byte {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-
-	return b
 }
